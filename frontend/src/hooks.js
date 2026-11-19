@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 
 // polls /api/trains; `loading` is true until the first answer (ok or error)
 export function useTrains(refreshMs) {
-  const [state, setState] = useState({ trains: [], updated: null, error: null, loading: true })
+  const [state, setState] = useState({
+    trains: [],
+    updated: null,
+    stale: false,
+    error: null,
+    loading: true,
+  })
 
   useEffect(() => {
     const load = () =>
@@ -12,7 +18,13 @@ export function useTrains(refreshMs) {
           return res.json()
         })
         .then((data) =>
-          setState({ trains: data.trains, updated: data.updated, error: null, loading: false }),
+          setState({
+            trains: data.trains,
+            updated: data.updated,
+            stale: Boolean(data.stale),
+            error: null,
+            loading: false,
+          }),
         )
         .catch((err) => setState((s) => ({ ...s, error: err.message, loading: false })))
 

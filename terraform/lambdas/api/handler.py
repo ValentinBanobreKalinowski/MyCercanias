@@ -1,10 +1,14 @@
 import json
 import os
+from datetime import datetime, timezone
 
 import boto3
 from boto3.dynamodb.conditions import Key
 
 table = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
+
+# older than this means no trains running (night) or the fetcher is down
+MAX_AGE_SECONDS = 10 * 60
 
 
 def response(status, body):
@@ -22,10 +26,14 @@ def latest_trains():
         Limit=1,
     )
     if not res["Items"]:
-        return {"updated": None, "trains": []}
+        return {"updated": None, "stale": True, "trains": []}
 
     item = res["Items"][0]
-    return {"updated": item["sk"], "trains": json.loads(item["trains"])}
+    age = (datetime.now(timezone.utc) - datetime.fromisoformat(item["sk"])).total_seconds()
+    if age > MAX_AGE_SECONDS:
+        return {"updated": item["sk"], "stale": True, "trains": []}
+
+    return {"updated": item["sk"], "stale": False, "trains": json.loads(item["trains"])}
 
 
 def handler(event, context):

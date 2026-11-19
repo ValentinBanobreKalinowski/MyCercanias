@@ -21,10 +21,17 @@ MADRID_BBOX = {"lat": (39.85, 41.17), "lon": (-4.6, -3.05)}
 LINE_RE = re.compile(r"C\d+[a-z]?", re.IGNORECASE)
 
 
-def fetch(url):
+def fetch(url, retries=1):
     req = urllib.request.Request(url, headers={"User-Agent": "mymadrid"})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return json.loads(resp.read())
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return json.loads(resp.read())
+        except Exception as e:
+            if attempt == retries:
+                raise
+            print(f"retrying {url}: {e}")
+            time.sleep(2)
 
 
 def parse_delays(feed):
@@ -91,13 +98,18 @@ def fetch_and_store():
 
     # still store positions if delays are down
     try:
-        delays = parse_delays(fetch(DELAYS_URL))
+        delays = parse_delays(fetch(DELAYS_URL, retries=0))
     except Exception as e:
         print(f"delays fetch failed: {e}")
         delays = {}
 
     feed_ts = int(feed.get("header", {}).get("timestamp", time.time()))
     trains = parse(feed, delays)
+
+    # renfe sometimes sends an empty feed, don't overwrite the last good snapshot
+    if not trains:
+        print(f"no madrid trains in feed ({len(feed.get('entity', []))} entities), skipping")
+        return 0
 
     # stored as a json string, boto3 doesn't take floats
     table.put_item(Item={
