@@ -35,6 +35,15 @@ export default function App() {
   const [trains, setTrains] = useState([])
   const [updated, setUpdated] = useState(null)
   const [error, setError] = useState(null)
+  // lines the user switched off in the legend
+  const [hidden, setHidden] = useState(() => new Set())
+
+  const toggleLine = (line) =>
+    setHidden((prev) => {
+      const next = new Set(prev)
+      next.has(line) ? next.delete(line) : next.add(line)
+      return next
+    })
 
   useEffect(() => {
     const load = () =>
@@ -55,9 +64,14 @@ export default function App() {
     return () => clearInterval(timer)
   }, [])
 
-  const lines = [...new Set(trains.map((t) => t.line))].sort((a, b) =>
+  const counts = {}
+  for (const t of trains) counts[t.line] = (counts[t.line] || 0) + 1
+
+  const lines = Object.keys(counts).sort((a, b) =>
     a.localeCompare(b, undefined, { numeric: true }),
   )
+
+  const visible = trains.filter((t) => !hidden.has(t.line))
 
   return (
     <div className="app">
@@ -68,7 +82,8 @@ export default function App() {
             <span className="error">Error: {error}</span>
           ) : (
             <>
-              <strong>{trains.length}</strong> trains
+              <strong>{visible.length}</strong>
+              {visible.length !== trains.length && <> of {trains.length}</>} trains
               {updated && <> · updated {new Date(updated).toLocaleTimeString()}</>}
             </>
           )}
@@ -81,7 +96,7 @@ export default function App() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {trains.map((t) => (
+        {visible.map((t) => (
           <CircleMarker
             key={t.id}
             center={[t.lat, t.lon]}
@@ -101,11 +116,24 @@ export default function App() {
       {lines.length > 0 && (
         <div className="legend">
           {lines.map((line) => (
-            <span key={line}>
+            <button
+              key={line}
+              type="button"
+              className={hidden.has(line) ? 'off' : ''}
+              aria-pressed={!hidden.has(line)}
+              title={hidden.has(line) ? `Show ${line}` : `Hide ${line}`}
+              onClick={() => toggleLine(line)}
+            >
               <i style={{ background: lineColor(line) }} />
               {line}
-            </span>
+              <small>{counts[line]}</small>
+            </button>
           ))}
+          {hidden.size > 0 && (
+            <button type="button" className="reset" onClick={() => setHidden(new Set())}>
+              Show all
+            </button>
+          )}
         </div>
       )}
     </div>
