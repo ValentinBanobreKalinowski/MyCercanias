@@ -43,8 +43,8 @@ Build the frontend before applying, terraform uploads whatever is in `frontend/d
 You don't need AWS access. GitHub Actions deploys everything.
 
 ```sh
-git clone git@github.com:ValentinBanobreKalinowski/MyMadrid.git
-cd MyMadrid/frontend && npm install
+git clone git@github.com:ValentinBanobreKalinowski/MyCercanias.git
+cd MyCercanias/frontend && npm install
 ```
 
 1. `git checkout -b my-change`

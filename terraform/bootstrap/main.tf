@@ -26,7 +26,7 @@ provider "aws" {
 # github puts owner and repo ids in the oidc sub claim
 variable "github_repo" {
   type    = string
-  default = "ValentinBanobreKalinowski@69508847/MyMadrid@1464004148"
+  default = "ValentinBanobreKalinowski@69508847/MyCercanias@1464004148"
 }
 
 data "aws_caller_identity" "current" {}
