@@ -15,18 +15,26 @@ def response(status, body):
     }
 
 
+def latest_trains():
+    res = table.query(
+        KeyConditionExpression=Key("pk").eq("TRAINS"),
+        ScanIndexForward=False,
+        Limit=1,
+    )
+    if not res["Items"]:
+        return {"updated": None, "trains": []}
+
+    item = res["Items"][0]
+    return {"updated": item["sk"], "trains": json.loads(item["trains"])}
+
+
 def handler(event, context):
     path = event.get("rawPath", "")
 
     if path == "/api/health":
         return response(200, {"status": "ok"})
 
-    if path == "/api/items":
-        res = table.query(
-            KeyConditionExpression=Key("pk").eq("FETCH"),
-            ScanIndexForward=False,
-            Limit=20,
-        )
-        return response(200, {"items": res["Items"]})
+    if path == "/api/trains":
+        return response(200, latest_trains())
 
     return response(404, {"error": "not found"})
