@@ -31,6 +31,15 @@ const STATUS = {
   IN_TRANSIT_TO: 'In transit',
 }
 
+function delayInfo(seconds) {
+  if (seconds == null) return { text: 'No delay info', cls: 'unknown' }
+  const min = Math.round(seconds / 60)
+  if (min <= 0) return { text: 'On time', cls: 'ontime' }
+  if (min < 3) return { text: `${min} min late`, cls: 'ontime' }
+  if (min <= 10) return { text: `${min} min late`, cls: 'late' }
+  return { text: `${min} min late`, cls: 'verylate' }
+}
+
 export default function App() {
   const [trains, setTrains] = useState([])
   const [updated, setUpdated] = useState(null)
@@ -105,6 +114,8 @@ export default function App() {
           >
             <Popup>
               <strong>{t.line}</strong> · {t.label || t.id}
+              <br />
+              <span className={`delay ${delayInfo(t.delay).cls}`}>{delayInfo(t.delay).text}</span>
               <br />
               {STATUS[t.status] || t.status}
               {t.stop && <> · stop {t.stop}</>}

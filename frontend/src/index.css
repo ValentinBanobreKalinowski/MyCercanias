@@ -46,6 +46,31 @@ h1 {
   flex: 1;
 }
 
+.delay {
+  display: inline-block;
+  margin: 4px 0;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.delay.ontime {
+  background: #1e8e3e;
+}
+
+.delay.late {
+  background: #e37400;
+}
+
+.delay.verylate {
+  background: #c5221f;
+}
+
+.delay.unknown {
+  background: #888;
+}
+
 .legend {
   position: absolute;
   bottom: 24px;

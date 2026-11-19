@@ -9,18 +9,42 @@ import boto3
 
 table = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
 
-SOURCE_URL = "https://gtfsrt.renfe.com/vehicle_positions.json"
+POSITIONS_URL = "https://gtfsrt.renfe.com/vehicle_positions.json"
+DELAYS_URL = "https://gtfsrt.renfe.com/trip_updates.json"
 INTERVAL = int(os.environ.get("FETCH_INTERVAL_SECONDS", "30"))
+
+# feed sometimes has nonsense like -8580s, treat as unknown
+MIN_DELAY = -300
 
 # comunidad de madrid, the feed covers all of spain
 MADRID_BBOX = {"lat": (39.85, 41.17), "lon": (-4.6, -3.05)}
 LINE_RE = re.compile(r"C\d+[a-z]?", re.IGNORECASE)
 
 
-def fetch():
-    req = urllib.request.Request(SOURCE_URL, headers={"User-Agent": "mymadrid"})
+def fetch(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "mymadrid"})
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read())
+
+
+def parse_delays(feed):
+    delays = {}
+    for entity in feed.get("entity", []):
+        tu = entity.get("tripUpdate") or {}
+        trip_id = (tu.get("trip") or {}).get("tripId")
+        if not trip_id:
+            continue
+
+        delay = tu.get("delay")
+        if delay is None:
+            for stu in tu.get("stopTimeUpdate", []):
+                delay = (stu.get("arrival") or stu.get("departure") or {}).get("delay")
+                if delay is not None:
+                    break
+
+        if delay is not None and int(delay) >= MIN_DELAY:
+            delays[trip_id] = int(delay)
+    return delays
 
 
 def in_madrid(lat, lon):
@@ -30,7 +54,7 @@ def in_madrid(lat, lon):
     )
 
 
-def parse(feed):
+def parse(feed, delays):
     trains = []
     for entity in feed.get("entity", []):
         v = entity.get("vehicle") or {}
@@ -41,6 +65,7 @@ def parse(feed):
 
         label = (v.get("vehicle") or {}).get("label", "")
         match = LINE_RE.search(label) or LINE_RE.search(entity.get("id", ""))
+        trip_id = (v.get("trip") or {}).get("tripId")
 
         trains.append({
             "id": entity.get("id"),
@@ -50,7 +75,8 @@ def parse(feed):
             "lon": round(lon, 5),
             "status": v.get("currentStatus"),
             "stop": v.get("stopId"),
-            "trip": (v.get("trip") or {}).get("tripId"),
+            "trip": trip_id,
+            "delay": delays.get(trip_id),
             "ts": v.get("timestamp"),
         })
     return trains
@@ -58,13 +84,20 @@ def parse(feed):
 
 def fetch_and_store():
     try:
-        feed = fetch()
+        feed = fetch(POSITIONS_URL)
     except Exception as e:
-        print(f"fetch failed: {e}")
+        print(f"positions fetch failed: {e}")
         return None
 
+    # still store positions if delays are down
+    try:
+        delays = parse_delays(fetch(DELAYS_URL))
+    except Exception as e:
+        print(f"delays fetch failed: {e}")
+        delays = {}
+
     feed_ts = int(feed.get("header", {}).get("timestamp", time.time()))
-    trains = parse(feed)
+    trains = parse(feed, delays)
 
     # stored as a json string, boto3 doesn't take floats
     table.put_item(Item={
