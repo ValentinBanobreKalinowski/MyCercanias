@@ -10,14 +10,10 @@ import { sortLines } from './lines.js'
 const MADRID = [40.4168, -3.7038]
 const REFRESH_MS = 30_000
 
-// CARTO basemaps: cleaner than the default OSM look, with a dark variant
-const TILES = {
-  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-}
+// carto needs an api key now, osm doesn't. dark mode is a css filter (.tiles-dark)
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ' +
-  '&copy; <a href="https://carto.com/attributions">CARTO</a> · Data: Renfe'
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Data: Renfe'
 
 export default function App() {
   const { trains, updated, error, loading } = useTrains(REFRESH_MS)
@@ -46,8 +42,8 @@ export default function App() {
       <MapContainer center={MADRID} zoom={10} zoomControl={false} className="map">
         <TileLayer
           key={dark ? 'dark' : 'light'}
-          url={dark ? TILES.dark : TILES.light}
-          subdomains="abcd"
+          url={TILES}
+          className={dark ? 'tiles-dark' : 'tiles-light'}
           maxZoom={19}
           attribution={ATTRIBUTION}
         />
