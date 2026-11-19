@@ -13,6 +13,12 @@ variable "domain_name" {
   default = "valentin-cloud.com"
 }
 
+# app lives on <subdomain>.<domain_name>, apex and www redirect there
+variable "subdomain" {
+  type    = string
+  default = "my-cercanias"
+}
+
 variable "fetch_schedule" {
   type    = string
   default = "rate(1 minute)"
