@@ -5,8 +5,8 @@ data "aws_route53_zone" "main" {
 
 resource "aws_acm_certificate" "site" {
   provider                  = aws.us_east_1
-  domain_name               = var.domain_name
-  subject_alternative_names = ["www.${var.domain_name}"]
+  domain_name               = local.app_host
+  subject_alternative_names = local.redirect_hosts
   validation_method         = "DNS"
 
   lifecycle {
@@ -38,7 +38,9 @@ resource "aws_acm_certificate_validation" "site" {
 }
 
 locals {
-  site_hosts = [var.domain_name, "www.${var.domain_name}"]
+  app_host       = "${var.subdomain}.${var.domain_name}"
+  redirect_hosts = [var.domain_name, "www.${var.domain_name}"]
+  site_hosts     = concat([local.app_host], local.redirect_hosts)
   alias_records = {
     for pair in setproduct(local.site_hosts, ["A", "AAAA"]) : "${pair[0]}-${pair[1]}" => {
       name = pair[0]

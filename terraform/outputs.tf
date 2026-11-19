@@ -1,9 +1,9 @@
 output "site_url" {
-  value = "https://${var.domain_name}"
+  value = "https://${local.app_host}"
 }
 
 output "api_url" {
-  value = "https://${var.domain_name}/api/items"
+  value = "https://${local.app_host}/api/trains"
 }
 
 output "cloudfront_domain" {

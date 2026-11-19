@@ -9,7 +9,7 @@ terraform/    all infra + lambda code (terraform/lambdas/)
 
 ## Architecture
 
-- `https://valentin-cloud.com` and `www` → Route 53 alias → CloudFront
+- `https://mi-cercanias.valentin-cloud.com` → Route 53 alias → CloudFront (`valentin-cloud.com` and `www` redirect there)
 - CloudFront `/*` → S3 bucket (private, OAC)
 - CloudFront `/api/*` → API Gateway (HTTP API) → `api` Lambda → DynamoDB
 - EventBridge every 1 min → `fetcher` Lambda (fetches every 30s) → DynamoDB
@@ -34,7 +34,7 @@ cd frontend && npm install && npm run build
 cd ../terraform && terraform init && terraform apply
 ```
 
-First apply takes ~5-10 min (cert validation + CloudFront). Then open https://valentin-cloud.com.
+First apply takes ~5-10 min (cert validation + CloudFront). Then open https://mi-cercanias.valentin-cloud.com.
 
 Build the frontend before applying, terraform uploads whatever is in `frontend/dist`.
 
@@ -66,5 +66,5 @@ cd frontend && npm run dev
 
 ```sh
 aws lambda invoke --region eu-south-2 --function-name mymadrid-fetcher /dev/stdout
-curl https://valentin-cloud.com/api/items
+curl https://mi-cercanias.valentin-cloud.com/api/trains
 ```

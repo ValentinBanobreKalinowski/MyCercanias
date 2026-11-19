@@ -84,14 +84,32 @@ data "aws_cloudfront_origin_request_policy" "all_except_host" {
   name = "Managed-AllViewerExceptHostHeader"
 }
 
-# react router: send non-file paths to index.html
+# old domains redirect to the app host, then react router: non-file paths to index.html
 resource "aws_cloudfront_function" "spa_rewrite" {
   name    = "${var.project}-spa-rewrite"
   runtime = "cloudfront-js-2.0"
   publish = true
   code    = <<-EOF
+    var APP_HOST = '${local.app_host}';
+
     function handler(event) {
       var req = event.request;
+
+      if (req.headers.host && req.headers.host.value !== APP_HOST) {
+        var qs = Object.keys(req.querystring).map(function (k) {
+          var v = req.querystring[k].value;
+          return v ? k + '=' + v : k;
+        }).join('&');
+
+        return {
+          statusCode: 301,
+          statusDescription: 'Moved Permanently',
+          headers: {
+            location: { value: 'https://' + APP_HOST + req.uri + (qs ? '?' + qs : '') },
+          },
+        };
+      }
+
       if (!req.uri.includes('.')) {
         req.uri = '/index.html';
       }

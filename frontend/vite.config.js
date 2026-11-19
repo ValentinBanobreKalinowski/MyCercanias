@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://valentin-cloud.com',
+        target: 'https://mi-cercanias.valentin-cloud.com',
         changeOrigin: true,
       },
     },
