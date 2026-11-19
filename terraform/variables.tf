@@ -16,7 +16,7 @@ variable "domain_name" {
 # app lives on <subdomain>.<domain_name>, apex and www redirect there
 variable "subdomain" {
   type    = string
-  default = "mi-cercanias"
+  default = "my-cercanias"
 }
 
 variable "fetch_schedule" {
