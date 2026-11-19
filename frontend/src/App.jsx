@@ -16,7 +16,7 @@ const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Data: Renfe'
 
 export default function App() {
-  const { trains, updated, error, loading } = useTrains(REFRESH_MS)
+  const { trains, updated, stale, error, loading } = useTrains(REFRESH_MS)
   const dark = useMediaQuery('(prefers-color-scheme: dark)')
   // lines the user switched off in the legend
   const [hidden, setHidden] = useState(() => new Set())
@@ -56,6 +56,12 @@ export default function App() {
       {error && !loading && (
         <div className="toast" role="alert">
           Can't reach the server ({error}). Retrying…
+        </div>
+      )}
+
+      {stale && !error && !loading && (
+        <div className="toast" role="status">
+          No live train data right now. Cercanías may not be running at this hour.
         </div>
       )}
 
