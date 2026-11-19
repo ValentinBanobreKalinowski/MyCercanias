@@ -62,10 +62,35 @@ h1 {
   font-size: 0.8rem;
 }
 
-.legend span {
+.legend button {
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.legend button:hover {
+  border-color: #ddd;
+}
+
+.legend button.off {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.legend button.reset {
+  color: #1f4fa0;
+  font-weight: 600;
+}
+
+.legend small {
+  color: #888;
 }
 
 .legend i {
