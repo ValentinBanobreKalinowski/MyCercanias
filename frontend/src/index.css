@@ -83,6 +83,15 @@ button:focus-visible {
   background: var(--bg);
 }
 
+/* tone down osm colors so the train dots stand out */
+.tiles-light {
+  filter: saturate(0.6) brightness(1.03);
+}
+
+.tiles-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35);
+}
+
 .glass {
   background: var(--surface);
   backdrop-filter: blur(16px) saturate(170%);
