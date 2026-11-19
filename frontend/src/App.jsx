@@ -85,7 +85,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>MyMadrid · Cercanías live</h1>
+        <h1>MyCercanías · Cercanías live</h1>
         <div className="meta">
           {error ? (
             <span className="error">Error: {error}</span>
